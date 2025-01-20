@@ -12,12 +12,16 @@
   <body>
     <div class="container">
       <h1>Piper Text-to-Speech</h1>
-      <textarea
-        id="text-input"
-        placeholder="Enter text to synthesize..."
-      ></textarea>
+
+      <label for="voice-select">Choose a Voice:</label>
+      <select id="voice-select"></select>
+
+      <textarea id="text-input" placeholder="Enter text here..."></textarea>
+
       <button id="synthesize-btn">Synthesize</button>
+
       <audio id="audio-player" controls style="display: none"></audio>
+
       <div id="status"></div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
