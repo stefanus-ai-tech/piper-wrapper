@@ -23,6 +23,15 @@
       <audio id="audio-player" controls style="display: none"></audio>
 
       <div id="status"></div>
+      <div
+        class="loading-container"
+        id="loading-container"
+        style="display: none"
+      >
+        <div class="loading-spinner"></div>
+      </div>
+      <div class="progress-bar" id="progress-bar"></div>
+      <div id="time-taken" style="display: none"></div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
   </body>

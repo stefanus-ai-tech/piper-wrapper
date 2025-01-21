@@ -4,6 +4,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const audioPlayer = document.getElementById("audio-player");
   const statusDiv = document.getElementById("status");
   const voiceSelect = document.getElementById("voice-select");
+  const loadingContainer = document.getElementById("loading-container");
+  const timeTakenDiv = document.getElementById("time-taken");
+
+  let startTime;
+  let timeTakenInterval;
 
   // Fetch available voices from the server
   async function fetchVoices() {
@@ -38,9 +43,19 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
 
+    // Reset loading state and timing
+    startTime = Date.now();
+    loadingContainer.style.display = "flex";
+    timeTakenDiv.style.display = "none";
     statusDiv.textContent = "Synthesizing...";
     statusDiv.style.color = "black";
     synthesizeBtn.disabled = true;
+
+    // Update time taken every second
+    timeTakenInterval = setInterval(() => {
+      const seconds = Math.floor((Date.now() - startTime) / 1000);
+      timeTakenDiv.textContent = `Processing: ${seconds}s`;
+    }, 1000);
 
     try {
       const response = await fetch("/synthesize", {
@@ -50,13 +65,11 @@ document.addEventListener("DOMContentLoaded", function () {
         },
         body: JSON.stringify({
           text: text,
-          voiceId: selectedVoiceId, // Pass the selected voice ID
+          voiceId: selectedVoiceId,
         }),
       });
 
-      if (!response.ok) {
-        throw new Error("Synthesis failed");
-      }
+      if (!response.ok) throw new Error("Synthesis failed");
 
       const blob = await response.blob();
       const audioUrl = URL.createObjectURL(blob);
@@ -72,7 +85,15 @@ document.addEventListener("DOMContentLoaded", function () {
       statusDiv.textContent = "Error during synthesis";
       statusDiv.style.color = "red";
     } finally {
+      clearInterval(timeTakenInterval);
+      loadingContainer.style.display = "none";
       synthesizeBtn.disabled = false;
+
+      // Show final time taken
+      const endTime = Date.now();
+      const duration = (endTime - startTime) / 1000;
+      timeTakenDiv.style.display = "block";
+      timeTakenDiv.textContent = `Generated in ${duration.toFixed(2)} seconds`;
     }
   });
 });

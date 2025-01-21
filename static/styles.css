@@ -239,3 +239,32 @@ label {
     height: 160px;
   }
 }
+
+/* Loading Animation Styles */
+.loading-container {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1.5rem 0;
+}
+
+.loading-spinner {
+  width: 2.5rem;
+  height: 2.5rem;
+  border: 3px solid var(--border);
+  border-radius: 50%;
+  border-top-color: var(--primary);
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Remove old progress bar styles and add this */
+#time-taken {
+  margin-top: 0; /* Adjust spacing */
+}
