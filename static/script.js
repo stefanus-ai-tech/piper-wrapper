@@ -1,4 +1,17 @@
+// Function to update generation count
+async function updateGenerationCount() {
+  try {
+    const response = await fetch("/generation-count");
+    const data = await response.json();
+    document.getElementById("generation-count").textContent = data.count;
+  } catch (error) {
+    console.error("Error fetching generation count:", error);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+  // Update generation count on page load
+  updateGenerationCount();
   const textInput = document.getElementById("text-input");
   const synthesizeBtn = document.getElementById("synthesize-btn");
   const audioPlayer = document.getElementById("audio-player");
@@ -80,6 +93,9 @@ document.addEventListener("DOMContentLoaded", function () {
 
       statusDiv.textContent = "Synthesis complete!";
       statusDiv.style.color = "green";
+      
+      // Update generation count after successful synthesis
+      updateGenerationCount();
     } catch (error) {
       console.error("Error:", error);
       statusDiv.textContent = "Error during synthesis";

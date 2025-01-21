@@ -7,6 +7,9 @@ import os
 import tempfile
 import subprocess
 from pathlib import Path
+# Add this near the top of the file after imports
+from threading import Lock
+counter_lock = Lock()
 
 def list_available_voices():
     voices = []
@@ -157,10 +160,38 @@ def get_voices():
         app.logger.error(f"Error fetching voices: {str(e)}")
         return jsonify({'error': "Internal server error"}), 500
 
+@app.route('/generation-count', methods=['GET'])
+def get_generation_count():
+    try:
+        with open('db.json', 'r') as f:
+            db = json.load(f)
+            return jsonify({'count': db.get('generation_count', 0)})
+    except FileNotFoundError:
+        # Initialize db.json if it doesn't exist
+        with open('db.json', 'w') as f:
+            json.dump({'generation_count': 0}, f)
+        return jsonify({'count': 0})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @app.route('/synthesize', methods=['POST'])
 def synthesize():
     """Handle TTS synthesis requests"""
     try:
+        # Increment generation counter with thread safety
+        with counter_lock:
+            try:
+                with open('db.json', 'r+') as f:
+                    db = json.load(f)
+                    db['generation_count'] = db.get('generation_count', 0) + 1
+                    f.seek(0)
+                    json.dump(db, f)
+                    f.truncate()
+            except FileNotFoundError:
+                # Initialize db.json if it doesn't exist
+                with open('db.json', 'w') as f:
+                    json.dump({'generation_count': 1}, f)
+
         # Get request data
         data = request.get_json()
         if not data:
