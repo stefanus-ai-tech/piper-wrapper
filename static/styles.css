@@ -33,6 +33,26 @@ body {
   padding: 1rem;
 }
 
+/* Banner Styles */
+.banner {
+  background: var(--primary-light);
+  color: var(--primary);
+  padding: 1rem;
+  font-weight: 500;
+  box-shadow: var(--shadow-sm);
+  width: 100%;
+  max-width: 32rem;
+  margin: 1rem auto; /* Added vertical margin */
+  text-align: center;
+}
+
+/* Add a container if not already present */
+.banner-container {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
 /* Container Styles */
 .container {
   width: 100%;
