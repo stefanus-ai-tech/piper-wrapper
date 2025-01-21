@@ -1,0 +1,6 @@
+Collecting cython
+  Using cached Cython-3.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (3.2 kB)
+Downloading Cython-3.0.11-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (3.5 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 3.5/3.5 MB 29.6 MB/s eta 0:00:00
+Installing collected packages: cython
+Successfully installed cython-3.0.11
