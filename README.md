@@ -23,7 +23,15 @@ git clone https://github.com/stefanus-ai-tech/piper-wrapper
 cd piper-tts
 ```
 
-### Instal piper depedencies
+### Install the wrapper dependencies
+
+```sh
+python3 -m venv myenv
+source myvenv/bin/activate
+pip install -r requirements.txt
+```
+
+### Instal piper dependencies
 
 ```sh
 cd piper/src/python_run
