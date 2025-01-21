@@ -23,6 +23,14 @@ git clone https://github.com/stefanus-ai-tech/piper-wrapper
 cd piper-tts
 ```
 
+### Instal piper depedencies
+
+```sh
+cd piper/src/python_run
+pip install -r requirements.txt
+```
+
+
 ### Download the model
 
 ```sh
