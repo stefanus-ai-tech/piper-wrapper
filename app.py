@@ -93,12 +93,15 @@ def synthesize_text(text: str, model_path: Path, config_path: Path) -> Path:
     Returns path to output WAV file
     Raises TTSError if synthesis fails
     """
+    if not text or not isinstance(text, str):
+        raise TTSError("Invalid text input")
+
     # Create temp output file
     output_path = TEMP_DIR / f"{hash(text)}.wav"
     
     # Build piper command
     cmd = [
-        'piper',
+        str(Path(__file__).parent / 'piper' / 'piper'),
         '--model', str(model_path),
         '--config', str(config_path), 
         '--output_file', str(output_path)
@@ -120,12 +123,24 @@ def synthesize_text(text: str, model_path: Path, config_path: Path) -> Path:
         if process.returncode != 0:
             raise TTSError(f"Synthesis failed: {stderr}")
             
+        # Verify output file was created
+        if not output_path.exists():
+            raise TTSError("Output file was not created")
+
         return output_path
 
     except FileNotFoundError:
         raise TTSError("Piper executable not found in PATH")
+    except subprocess.TimeoutExpired:
+        process.kill()
+        raise TTSError("Synthesis timed out")
     except Exception as e:
+        if process and process.poll() is None:
+            process.kill()
         raise TTSError(f"Synthesis error: {str(e)}")
+    finally:
+        if process and process.poll() is None:
+            process.kill()
 
 @app.route('/')
 def index():
