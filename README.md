@@ -34,9 +34,32 @@ pip install -r requirements.txt
 ### Instal piper dependencies
 
 ```sh
-cd piper/src/python_run
+cd piper_repo/src/python_run
 pip install -r requirements.txt
+pip install cython>=0.29.0
+pip install librosa>=0.9.2 
+pip install numpy>=1.19.0 
+pip install onnxruntime>=1.11.0
+pip install pytorch-lightning==1.7.0 
+pip install torch==1.11.0
+pip install torchtext==0.12.0 
+pip install torchvision==0.12.0
+pip install torchaudio==0.11.0 
+pip install torchmetrics==0.11.4
+pip install piper-tts==1.2.0
 ```
+If that still doesn't work, try installing with the --no-deps flag and then install dependencies separately:
+
+```sh
+pip install --no-deps piper-tts==1.2.0
+```
+
+To install piper_phonemize library
+```sh
+cd piper-phonemize
+pip install .
+```
+
 
 
 ### Download the model
