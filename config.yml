@@ -1,0 +1,6 @@
+tunnel: stefanusadri-tunnel
+credentials-file: /home/adri/Documents/tts/piper-wrapper/credentials.json
+ingress:
+  - hostname: tunnel.stefanusadri.my.id
+    service: http://localhost:8080
+  - service: http_status:404
