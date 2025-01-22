@@ -1,2 +1,5 @@
 Flask==2.3.2
 Flask-Limiter==2.8.1
+piper-phonemize~=1.1.0
+onnxruntime>=1.11.0,<2
+
