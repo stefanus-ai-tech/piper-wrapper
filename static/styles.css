@@ -79,8 +79,18 @@ h1 {
   margin-bottom: 2rem;
 }
 
+/* Stats Container */
+.stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin: 0 auto 2rem;
+  width: fit-content;
+}
+
 /* Counter Styles */
-.generation-counter {
+.generation-counter,
+.queue-position {
   background: var(--primary-light);
   color: var(--primary);
   font-size: 0.875rem;
@@ -88,8 +98,11 @@ h1 {
   padding: 0.5rem 1rem;
   border-radius: 12px;
   display: table;
-  margin: 0 auto 2rem;
   animation: pulse 2s infinite;
+}
+
+.queue-position {
+  display: none; /* Hidden by default, shown when in queue */
 }
 
 /* Form Elements */

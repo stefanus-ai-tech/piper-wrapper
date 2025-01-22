@@ -9,6 +9,23 @@ async function updateGenerationCount() {
   }
 }
 
+// Function to update queue position
+async function updateQueuePosition() {
+  try {
+    const response = await fetch("/queue-position");
+    const data = await response.json();
+    const queueElement = document.getElementById("queue-position");
+    queueElement.textContent = data.position;
+    if (data.position > 0) {
+      queueElement.parentElement.style.display = "block";
+    } else {
+      queueElement.parentElement.style.display = "none";
+    }
+  } catch (error) {
+    console.error("Error fetching queue position:", error);
+  }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
   // Update generation count on page load
   updateGenerationCount();

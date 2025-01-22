@@ -1,15 +1,23 @@
 import time
 from datetime import datetime
 import json
+from collections import deque
+from threading import Lock
 
 from flask import Flask, render_template, request, send_file, jsonify
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 import os
 import tempfile
 import subprocess
 from pathlib import Path
-# Add this near the top of the file after imports
 from threading import Lock
+
+# Thread-safe locks and queues
 counter_lock = Lock()
+queue_lock = Lock()
+request_queue = deque()
+queue_positions = {}
 
 def list_available_voices():
     voices = []
@@ -174,10 +182,32 @@ def get_generation_count():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/queue-position', methods=['GET'])
+def get_queue_position():
+    """Get current queue position for client"""
+    client_ip = get_remote_address()
+    with queue_lock:
+        position = queue_positions.get(client_ip, 0)
+        return jsonify({'position': position})
+
 @app.route('/synthesize', methods=['POST'])
 def synthesize():
-    """Handle TTS synthesis requests"""
+    """Handle TTS synthesis requests with rate limiting and queue system"""
+    client_ip = get_remote_address()
+    
+    # Add to queue
+    with queue_lock:
+        request_queue.append(client_ip)
+        queue_positions[client_ip] = len(request_queue)
+    
     try:
+        # Wait for turn
+        while True:
+            with queue_lock:
+                if request_queue[0] == client_ip:
+                    break
+            time.sleep(1)
+
         # Increment generation counter with thread safety
         with counter_lock:
             try:
@@ -226,6 +256,15 @@ def synthesize():
     except Exception as e:
         app.logger.error(f"Synthesis error: {str(e)}")
         return jsonify({'error': "Internal server error"}), 500
+    finally:
+        # Remove from queue
+        with queue_lock:
+            if client_ip in queue_positions:
+                request_queue.remove(client_ip)
+                del queue_positions[client_ip]
+                # Update positions for remaining clients
+                for idx, ip in enumerate(request_queue):
+                    queue_positions[ip] = idx + 1
 
 if __name__ == '__main__':
     # Initialize the app before running
