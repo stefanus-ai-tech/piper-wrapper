@@ -29,4 +29,4 @@ ENV LD_LIBRARY_PATH=/app/piper:$LD_LIBRARY_PATH
 RUN chmod +x piper/piper
 
 # Run Gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "app:app", "--timeout", "600"]
