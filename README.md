@@ -27,7 +27,7 @@ cd piper-tts
 
 ```sh
 python3 -m venv myenv
-source myvenv/bin/activate
+source myenv/bin/activate
 pip install -r requirements.txt
 ```
 
