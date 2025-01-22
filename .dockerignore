@@ -1,5 +1,6 @@
 # Ignore everything except essential files
 **
+
 !app.py
 !requirements.txt
 !templates/
@@ -8,3 +9,5 @@
 !piper/piper
 !piper/lib*
 !piper/espeak-ng-data/
+!piper_models/  
+# Add this line to include piper_models
