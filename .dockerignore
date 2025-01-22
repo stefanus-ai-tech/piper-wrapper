@@ -1,0 +1,10 @@
+# Ignore everything except essential files
+**
+!app.py
+!requirements.txt
+!templates/
+!static/
+!piper/
+!piper/piper
+!piper/lib*
+!piper/espeak-ng-data/

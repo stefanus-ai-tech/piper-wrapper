@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    environment:
+      - FLASK_ENV=production
+    networks:
+      - tts-network
+    volumes:
+      - static-volume:/app/static
+      - ./piper_models:/app/piper_models
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+      - static-volume:/app/static
+    depends_on:
+      - app
+    networks:
+      - tts-network
+
+volumes:
+  static-volume:
+    driver: local
+    driver_opts:
+      o: bind
+      type: none
+      device: ./static
+
+networks:
+  tts-network:
+    driver: bridge
