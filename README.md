@@ -20,7 +20,7 @@ Piper is a fast, local neural text-to-speech system that sounds great and is opt
 
 ```sh
 git clone https://github.com/stefanus-ai-tech/piper-wrapper
-cd piper-tts
+cd piper-wrapper
 ```
 
 ### Install the wrapper dependencies
