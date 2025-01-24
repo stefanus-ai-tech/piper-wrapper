@@ -19,22 +19,138 @@ queue_lock = Lock()
 request_queue = deque()
 queue_positions = {}
 
-def list_available_voices():
+
+
+def llist_available_voices_filename_origin():
+    """
+    Lists available voices by scanning PIPER_MODELS_DIR.
+    Origin is determined by keywords in the filename.
+    Speed is still derived from the quality folder name.
+    Voice name is extracted and simplified from the filename.
+    "Unknown" origin/speed are removed from display name if possible.
+    """
     voices = []
     for model_path in PIPER_MODELS_DIR.glob('**/*.onnx'):
-        config_path = model_path.with_suffix('.onnx.json')
-        if config_path.exists():
+        try:
+            config_path = model_path.with_suffix('.onnx.json')
+            if not config_path.exists():
+                print(f"Warning: Config file not found for model: {model_path}. Skipping.")
+                continue
+
             voice_id = model_path.stem
-            language, name, quality = model_path.parts[-4:-1]
-            voices.append({
-                'id': voice_id,
-                'language': language,
-                'name': name,
-                'quality': quality,
-                'model': str(model_path),
-                'config': str(config_path)
-            })
+            path_parts = model_path.parts
+
+            if len(path_parts) >= 5:
+                language = path_parts[-4]
+                region_code = path_parts[-3]
+                name_folder = path_parts[-2]
+                quality = path_parts[-1]
+
+                # --- Determine origin from filename keywords ---
+                filename = model_path.name
+                origin_name = "unknown"
+
+                if "en_US" in filename:
+                    origin_name = "american"
+                elif "en_GB" in filename:
+                    origin_name = "british"
+                elif "en_AU" in filename:
+                    origin_name = "australian"
+                elif language == 'de':
+                    origin_name = "german"
+                elif language == 'es':
+                    origin_name = "spanish"
+                elif language == 'fr':
+                    origin_name = "french"
+                elif language == 'it':
+                    origin_name = "italian"
+                elif language == 'ja':
+                    origin_name = "japanese"
+                elif language == 'ko':
+                    origin_name = "korean"
+                elif language == 'nl':
+                    origin_name = "dutch"
+                elif language == 'pl':
+                    origin_name = "polish"
+                elif language == 'pt':
+                    origin_name = "portuguese"
+                elif language == 'ru':
+                    origin_name = "russian"
+                elif language == 'zh':
+                    origin_name = "chinese"
+                else:
+                    origin_name = language
+
+                # --- Extract and simplify voice name from filename ---
+                actual_name = filename
+                prefixes_to_remove = ["en_GB-", "en_US-", "en_AU-", "de-", "es-", "fr-", "it-", "ja-", "ko-", "nl-", "pl-", "pt-", "ru-", "zh-"]
+                suffixes_to_remove = ["-low", "-medium", "-high", ".onnx", "-low", "-medium", "-high"] # Added quality suffixes here
+
+                for prefix in prefixes_to_remove:
+                    if actual_name.startswith(prefix):
+                        actual_name = actual_name[len(prefix):]
+                        break
+
+                for suffix in suffixes_to_remove:
+                    if actual_name.endswith(suffix):
+                        actual_name = actual_name[:-len(suffix)]
+
+                actual_name = actual_name.replace("_", " ").strip()
+                actual_name = actual_name.capitalize()
+
+                # --- Speed mapping and formatting ---
+                speed_map = {
+                    'high': 'slow',
+                    'medium': 'medium',
+                    'low': 'fast'
+                }
+                speed_raw = quality
+                speed = speed_map.get(quality, 'unknown')
+
+                speed_display = speed.capitalize()
+                if speed_display != "Unknown":
+                    speed_display = f" - {speed_display}"
+
+                # --- Origin formatting ---
+                origin_display = origin_name.capitalize()
+                if origin_display != "Unknown":
+                    origin_display = f" - {origin_display}"
+
+                # --- Construct display name with conditional parts and spaces ---
+                if origin_name == "unknown" and speed == "unknown":
+                    display_name = f"{actual_name}"
+                elif origin_name == "unknown":
+                    display_name = f"{actual_name}{speed_display}"
+                elif speed == "unknown":
+                    display_name = f"{actual_name}{origin_display}"
+                else:
+                    display_name = f"{actual_name}{origin_display}{speed_display}"
+
+
+                voices.append({
+                    'id': voice_id,
+                    'language': language,
+                    'region_code': region_code,
+                    'name': name_folder,
+                    'quality': quality,
+                    'quality_raw': speed_raw,
+                    'speed': speed,
+                    'display_name': display_name,
+                    'model': str(model_path),
+                    'config': str(config_path)
+                })
+            else:
+                print(f"Warning: Unexpected path structure for model: {model_path}. Skipping.")
+
+        except Exception as e:
+            print(f"Error processing voice model {model_path}: {e}")
+
     return voices
+
+
+
+
+
 
 # Create a variable to track last cleanup
 last_cleanup = datetime.now()
@@ -83,7 +199,7 @@ def validate_voice_paths(voice_id: str) -> tuple[Path, Path]:
     Returns tuple of (model_path, config_path) as Path objects
     Raises TTSError if validation fails
     """
-    voices = list_available_voices()
+    voices = llist_available_voices_filename_origin()
     selected_voice = next((voice for voice in voices if voice['id'] == voice_id), None)
     if not selected_voice:
         raise TTSError("Invalid voice ID")
@@ -162,7 +278,7 @@ def index():
 def get_voices():
     """Return available voices"""
     try:
-        voices = list_available_voices()
+        voices = llist_available_voices_filename_origin()
         return jsonify(voices)
     except Exception as e:
         app.logger.error(f"Error fetching voices: {str(e)}")

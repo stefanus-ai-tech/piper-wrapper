@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", function () {
     voices.forEach((voice) => {
       const option = document.createElement("option");
       option.value = voice.id;
-      option.textContent = `${voice.language} - ${voice.name} (${voice.quality})`;
+      option.textContent = voice.display_name;
       voiceSelect.appendChild(option);
     });
   }
