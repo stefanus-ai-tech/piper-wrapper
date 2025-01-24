@@ -36,6 +36,42 @@ document.addEventListener("DOMContentLoaded", function () {
   const voiceSelect = document.getElementById("voice-select");
   const loadingContainer = document.getElementById("loading-container");
   const timeTakenDiv = document.getElementById("time-taken");
+  const charCounter = document.querySelector('.char-counter');
+  const charCount = document.getElementById('char-count');
+
+  // Character limit
+  const CHAR_LIMIT = 3420;
+  const WARNING_THRESHOLD = 3000;
+
+  // Update character counter
+  function updateCharCounter() {
+    const length = textInput.value.length;
+    charCount.textContent = length;
+    const charAlert = document.getElementById('char-alert');
+
+    // Update counter styling and alerts
+    if (length >= CHAR_LIMIT) {
+      charCounter.classList.add('error');
+      charAlert.style.display = 'block';
+      synthesizeBtn.disabled = true;
+      synthesizeBtn.classList.add('disabled');
+      if (length === CHAR_LIMIT) alert('Character limit reached!');
+    } else if (length >= WARNING_THRESHOLD) {
+      charCounter.classList.add('warning');
+      charAlert.style.display = 'none';
+      synthesizeBtn.disabled = false;
+      synthesizeBtn.classList.remove('disabled');
+    } else {
+      charCounter.classList.remove('warning', 'error');
+      charAlert.style.display = 'none';
+      synthesizeBtn.disabled = false;
+      synthesizeBtn.classList.remove('disabled');
+    }
+  }
+
+  // Initialize character counter
+  updateCharCounter();
+  textInput.addEventListener('input', updateCharCounter);
 
   let startTime;
   let timeTakenInterval;

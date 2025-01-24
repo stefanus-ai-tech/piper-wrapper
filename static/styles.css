@@ -149,6 +149,32 @@ textarea:focus {
   box-shadow: 0 0 0 4px var(--focus-ring);
 }
 
+.char-counter {
+  text-align: right;
+  font-size: 0.875rem;
+  color: var(--text-light);
+  margin: -1rem 0 1.5rem;
+  transition: color 0.2s ease;
+}
+
+.char-counter.warning {
+  color: #f59e0b;
+}
+
+.char-counter.error {
+  color: var(--error);
+}
+
+button.disabled {
+  background: var(--border);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+button.disabled:hover {
+  transform: none;
+}
+
 button {
   width: 100%;
   padding: 1rem;
