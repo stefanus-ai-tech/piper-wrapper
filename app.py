@@ -269,4 +269,4 @@ def synthesize():
 if __name__ == '__main__':
     # Initialize the app before running
     init_app(app)
-    app.run(debug=True)
+    app.run(debug=True, port=5001)
