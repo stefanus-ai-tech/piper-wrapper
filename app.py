@@ -158,7 +158,7 @@ def llist_available_voices_filename_origin():
 last_cleanup = datetime.now()
 
 # Initialize Flask app
-app = Flask(__name__, static_folder='static')
+app = Flask(__name__, static_url_path='/static', static_folder='static')
 
 # Configure base paths
 PIPER_MODELS_DIR = Path('piper_models')

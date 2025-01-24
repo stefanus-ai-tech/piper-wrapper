@@ -3,16 +3,17 @@ version: '3.8'
 services:
   app:
     build:
-      context: .  # <--- Explicitly set the build context to "." (current directory)
+      context: .
       dockerfile: Dockerfile
     environment:
       - FLASK_ENV=production
     networks:
       - tts-network
     volumes:
-      - static-volume:/app/static
-    ports:
-      - "5000:5000"
+      - static-volume:/app/static  # Where Flask generates static files
+    # Don't expose port 5000 externally - only for internal nginx access
+    expose:
+      - "5000"
 
   nginx:
     image: nginx:alpine
@@ -20,7 +21,7 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
-      - static-volume:/app/static
+      - static-volume:/usr/share/nginx/html/static  # Correct nginx static path
     depends_on:
       - app
     networks:
@@ -32,7 +33,7 @@ volumes:
     driver_opts:
       o: bind
       type: none
-      device: ./static
+      device: ./static  # Host directory for persistent storage
 
 networks:
   tts-network:

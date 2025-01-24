@@ -1,96 +1,72 @@
 #!/bin/bash
-set -e  # Exit immediately if a command exits with a non-zero status
+set -e
 
-# -------------------------------------------------------------------
-#                      Configuration Section
-# -------------------------------------------------------------------
+# ---------------------------
+# Configuration
+# ---------------------------
+PROJECT_DIR="/home/server/Documents/piper-wrapper"  # Your project directory
+DOCKER_COMPOSE_FILE="docker-compose.yml"            # Your compose file name
+SERVICE_NAME="app"                                  # Your app service name
+STATIC_SOURCE="/app/static"                         # Container static path
+HOST_STATIC_DIR="./static"                          # Host static directory
+TIMEOUT_SECONDS=30                                  # Max wait for container
+# ---------------------------
 
-PROJECT_DIR="/home/server/Documents/piper-wrapper"  # <--- UPDATED with absolute path
-DOCKER_COMPOSE_FILE="docker-compose.yml"       # <--- Assuming your docker-compose.yml is in the project root
+echo "=== Starting Deployment ==="
+echo "Project: ${PROJECT_DIR}"
+echo "Time: $(date '+%Y-%m-%d %H:%M:%S')"
+echo "----------------------------"
 
-# --- Configuration for Static File Update ---
-TEMP_STATIC_DIR="./temp_static"  # Temporary directory to collect static files
-CONTAINER_NAME="piper-wrapper-app-1" # <--- IMPORTANT:  You might need to adjust this. See below.
-STATIC_SOURCE_PATH="/app/static"   # Path to static files INSIDE the 'app' container
-HOST_STATIC_DEST_PATH="./static"    # Path to your host's './static' directory
+cd "${PROJECT_DIR}" || { echo "! Failed to enter project directory"; exit 1; }
 
-# -------------------------------------------------------------------
-#                      Deployment Script Start
-# -------------------------------------------------------------------
-
-echo "-----------------------------------------------------"
-echo "             Starting Deployment Script              "
-echo "-----------------------------------------------------"
-echo "Project Directory: ${PROJECT_DIR}"
-echo "Docker Compose File: ${DOCKER_COMPOSE_FILE}"
-echo ""
-
-# --- Step 1: Navigate to project directory ---
-echo "Step 1: Navigating to project directory..."
-cd "${PROJECT_DIR}" || { echo "Error: Could not change directory to ${PROJECT_DIR}"; exit 1; }
-echo "Current directory: $(pwd)"
-echo ""
-
-# --- Step 2: Stop existing Docker containers ---
-echo "Step 2: Stopping existing Docker containers (docker-compose down)..."
+# Stop existing containers
+echo "Stopping existing containers..."
 docker-compose -f "${DOCKER_COMPOSE_FILE}" down
-echo "Docker Compose Down completed."
-echo ""
 
-# --- Step 2.5: Update Static Files on Host ---
-echo "Step 2.5: Updating static files in '${HOST_STATIC_DEST_PATH}' directory..."
+# Rebuild with clean build cache
+echo "Rebuilding containers..."
+docker-compose -f "${DOCKER_COMPOSE_FILE}" build --no-cache
 
-# --- ADD STATIC FILE UPDATE ---
-echo "  - Creating temporary directory: ${TEMP_STATIC_DIR}"
-mkdir -p "${TEMP_STATIC_DIR}"
+# Start new containers
+echo "Starting containers in detached mode..."
+docker-compose -f "${DOCKER_COMPOSE_FILE}" up -d
 
-echo "  - Copying static files from container '${CONTAINER_NAME}:${STATIC_SOURCE_PATH}' to '${TEMP_STATIC_DIR}'..."
-docker cp "${CONTAINER_NAME}:${STATIC_SOURCE_PATH}" "${TEMP_STATIC_DIR}"
+# Get app container ID
+echo "Finding application container..."
+CONTAINER_ID=$(docker-compose -f "${DOCKER_COMPOSE_FILE}" ps -q "${SERVICE_NAME}")
 
-echo "  - Removing existing files in '${HOST_STATIC_DEST_PATH}'..."
-rm -rf "${HOST_STATIC_DEST_PATH}"/*  # <--- CAREFUL! Double-check paths.
+# Wait for container to be running
+echo "Waiting for container to start (max ${TIMEOUT_SECONDS}s)..."
+timeout=${TIMEOUT_SECONDS}
+while [ "$(docker inspect -f '{{.State.Running}}' "${CONTAINER_ID}" 2>/dev/null)" != "true" ]; do
+  if [ "$timeout" -le 0 ]; then
+    echo "! Container failed to start"
+    exit 1
+  fi
+  sleep 1
+  ((timeout--))
+done
 
-echo "  - Copying new static files from '${TEMP_STATIC_DIR}/static' to '${HOST_STATIC_DEST_PATH}'..."
-if [ -d "${TEMP_STATIC_DIR}/static" ]; then # Check if 'static' directory was actually copied
-  cp -r "${TEMP_STATIC_DIR}/static"/* "${HOST_STATIC_DEST_PATH}"
-  echo "  - Static files updated in '${HOST_STATIC_DEST_PATH}'."
-else
-  echo "  - WARNING: No 'static' directory found in copied data from container. Static files might NOT be updated."
-  echo "    Check if '${STATIC_SOURCE_PATH}' is the correct path inside your 'app' container."
+# Verify static directory exists in container
+echo "Checking for static files in container..."
+if ! docker exec "${CONTAINER_ID}" test -d "${STATIC_SOURCE}"; then
+  echo "! Static directory missing in container: ${STATIC_SOURCE}"
+  exit 1
 fi
 
-echo "  - Cleaning up temporary directory: ${TEMP_STATIC_DIR}"
-rm -rf "${TEMP_STATIC_DIR}"
-# --- END STATIC FILE UPDATE ---
+# Create backup of current static files
+echo "Creating backup of static files..."
+backup_dir="./static_backup_$(date +%s)"
+mkdir -p "${backup_dir}"
+cp -r "${HOST_STATIC_DIR}/." "${backup_dir}/" 2>/dev/null || true
 
-echo "Static file update process completed."
-echo ""
+# Copy fresh static files from container
+echo "Updating static files..."
+mkdir -p "${HOST_STATIC_DIR}"
+docker cp "${CONTAINER_ID}:${STATIC_SOURCE}/." "${HOST_STATIC_DIR}/"
 
-
-# --- Step 3: Build Docker images with no cache ---
-echo "Step 3: Building Docker images (docker-compose build --no-cache)..."
-docker-compose -f "${DOCKER_COMPOSE_FILE}" build --no-cache
-echo "Docker Compose Build completed."
-echo ""
-
-# --- Step 4: Start Docker containers in detached mode ---
-echo "Step 4: Starting Docker containers in detached mode (docker-compose up -d)..."
-docker-compose -f "${DOCKER_COMPOSE_FILE}" up -d
-echo "Docker Compose Up (detached) completed."
-echo ""
-
-echo "-----------------------------------------------------"
-echo "              Deployment Script Finished              "
-echo "-----------------------------------------------------"
-echo "Application should be updated and running."
-echo "Check http://localhost:8080 in your browser."
-echo ""
-echo "--- IMPORTANT NEXT STEPS FOR CI/CD ---"
-echo "For a proper CI/CD pipeline:"
-echo "1. Pre-build Docker images in a CI environment (like GitHub Actions)."
-echo "2. Push these images to a Container Registry (like Docker Hub)."
-echo "3. Modify docker-compose.yml to use 'image:' instead of 'build:' and specify image tags."
-echo "4. Update this deploy.sh to 'docker-compose pull' the pre-built images instead of 'docker-compose build'."
-echo "-----------------------------------------------------"
-
-exit 0
+echo "----------------------------"
+echo "Deployment completed successfully!"
+echo "Static files updated: ${HOST_STATIC_DIR}"
+echo "Backup created: ${backup_dir}"
+echo "Check application at http://localhost:8080"
