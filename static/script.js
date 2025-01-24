@@ -40,8 +40,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const charCount = document.getElementById('char-count');
 
   // Character limit
-  const CHAR_LIMIT = 3420;
-  const WARNING_THRESHOLD = 3000;
+  const CHAR_LIMIT = 1024;
+  const WARNING_THRESHOLD = 800;
 
   // Update character counter
   function updateCharCounter() {
