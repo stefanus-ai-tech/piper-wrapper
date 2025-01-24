@@ -60,10 +60,29 @@ cd piper-phonemize
 pip install .
 ```
 
+### Install docker and docker compose
+
+```sh
+sudo apt update
+sudo apt install build-essential
+pip install --upgrade setuptools wheel
+sudo apt install -y ca-certificates curl gnupg lsb-release
+sudo mkdir -p /etc/apt/keyrings
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+sudo echo  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu  $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+sudo apt update
+sudo apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin
+sudo apt install docker-compose
+```
 
 
 ### Download the model
 
 ```sh
 ./download_piper_models.sh
+```
+
+### Build with docker
+```sh
+sudo docker-compose build
 ```
