@@ -1,3 +1,5 @@
+print("THIS IS VERSION 3 OF APP.PY - DEFINITELY UPDATED!")
+
 import time
 from datetime import datetime
 import json

@@ -1,4 +1,4 @@
-# Single stage build for simplicity
+# Base image
 FROM python:3.9-slim-buster
 
 # Install system dependencies
@@ -9,18 +9,13 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Copy only necessary files
+# Install Python dependencies first for caching
 COPY requirements.txt .
-COPY app.py .
-COPY templates/ ./templates/
-COPY static/ ./static/
-COPY piper/piper ./piper/
-COPY piper/lib* ./piper/
-COPY piper/espeak-ng-data/ ./piper/espeak-ng-data/
-COPY piper_models/ ./piper_models/
-
-# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy the entire project for production image
+# In CI/CD, this will copy the code as it is at the time of image build.
+COPY . .
 
 # Set environment variables
 ENV LD_LIBRARY_PATH=/app/piper:$LD_LIBRARY_PATH
